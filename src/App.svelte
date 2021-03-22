@@ -1,27 +1,33 @@
 <script>
 	export let name;
-	import YT from './components/YT.svelte'
-	import YouTube_GAPI from './components/YouTube_GAPI.svelte'
-	import YouTube_REST from './components/YouTube_REST.svelte'
-	import YouTube_OAuth from './components/YouTube_OAuth.svelte'
-	import Test from './Test.svelte'
-	import "smelte/src/tailwind.css" ;
-import YouTubeOAuth from './components/YouTube_OAuth.svelte';
+	import YT from "./components/YT.svelte";
+	import YouTube_GAPI from "./components/YouTube_GAPI.svelte";
+	import YouTube_REST from "./components/YouTube_REST.svelte";
+	import YouTube_OAuth from "./components/YouTube_OAuth.svelte";
+	import Test from "./Test.svelte";
+	import "smelte/src/tailwind.css";
+	import YouTubeOAuth from "./components/YouTube_OAuth.svelte";
 </script>
 
 <svelte:head>
-	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500|Material+Icons&display=swap"
-rel="stylesheet" />
+	<link
+		href="https://fonts.googleapis.com/css?family=Roboto:300,400,500|Material+Icons&display=swap"
+		rel="stylesheet"
+	/>
 </svelte:head>
 
 <main>
 	<h1>YouTube Data Saver</h1>
-	<YouTube_GAPI />
-	<YouTubeOAuth/>
-	<YouTube_REST/>
+	<!-- <YouTube_GAPI /> -->
+	<YouTubeOAuth />
+	<!-- <YouTube_REST/> -->
 </main>
 
-<style>
+<style global lang="postcss">
+	/* @tailwind base;
+	@tailwind components;
+	@tailwind utilities; */
+
 	main {
 		text-align: center;
 		padding: 1em;

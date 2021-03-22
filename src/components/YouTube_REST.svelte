@@ -30,7 +30,7 @@
     // let lookupPart = "snippet";
     let lookupPart = "snippet";
     let playlistId = "";
-    let thisId = ""
+    let thisId = "";
     let pagesOfResults = 0;
     onMount(() => {
         // fs.readFile("./test.json", "utf8", (err, data) => {
@@ -48,6 +48,7 @@
     });
 
     async function getChannelByName(part) {
+        videos = [];
         let URL = `${URI}channels?part=${part}&forUsername=${channelName}&key=${API_KEY}`;
         console.log(`URL ${URL}`);
         let response = await fetch(URL);
@@ -81,13 +82,14 @@
         console.log(`result: `, result);
     }
 
-    async function getChannelById() {
+    async function getPlaylistsByChannelId() {
+        videos = [];
         let URL = `${URI}search?order=date&part=${lookupPart}&maxResults=${maxResults}&channelId=${channelId}&key=${API_KEY}`;
         console.log(`URL ${URL}`);
         let response = await fetch(URL);
         let result = await response.json();
         console.log(
-            `🚀 ~ file: YouTube.svelte ~ line 66 ~ getChannelById ~ result`,
+            `🚀 ~ file: YouTube.svelte ~ line 66 ~ getPlaylistsByChannelId ~ result`,
             result
         );
         if (result.items) {
@@ -97,7 +99,7 @@
         }
         if (nextPageToken) {
             console.log(
-                `🚀 ~ file: YouTube.svelte ~ line 59 ~ getChannelById ~ nextPageToken`,
+                `🚀 ~ file: YouTube.svelte ~ line 59 ~ getPlaylistsByChannelId ~ nextPageToken`,
                 nextPageToken
             );
             // let i = 0;
@@ -115,25 +117,16 @@
         }
     }
 
-   async function getPlaylistId(id) {
-        // let URL = `${URI}search?id=${id}&key=${API_KEY}`;
-        // console.log(`URL ${URL}`);
-        // let response = await fetch(URL);
-        // let result = await response.json();
-        // console.log(
-        //     `🚀 ~ file: YouTube_REST.svelte ~ line 122 ~ getPlaylistId ~ result`,
-        //     result
-        // );
-        // if (result.items) {
-        //     parseResultData("id", result);
-        // } else {
-        //     videoId = "Video not found";
-        // }
-        playlistId = id
-        console.log(`🚀 ~ file: YouTube_REST.svelte ~ line 133 ~ getPlaylistId ~ playlistId`, playlistId)
+    async function getPlaylistId(id) {
+        playlistId = id;
+        console.log(
+            `🚀 ~ file: YouTube_REST.svelte ~ line 133 ~ getPlaylistId ~ playlistId`,
+            playlistId
+        );
     }
 
     function parseResultData(type, res) {
+        videos = [];
         if (type == "name") {
             console.log(`Name res: `, res);
             channelId = res.id;
@@ -182,8 +175,22 @@
             if (e.target.ariaLabel == "Channel Name") {
                 getChannelByName(lookupPart);
             } else if (e.target.ariaLabel == "Channel ID") {
-                getChannelById(channelId);
+                getPlaylistsByChannelId(channelId);
             }
+        }
+    }
+    function assignId(video) {
+        if (video.id.videoId) {
+            // console.log(`🚀 ~ file: YouTube_REST.svelte ~ line 197 ~ assignId ~ video.id.videoId`, video.id.videoId)
+            thisId = video.id.videoId;
+        } else if (video.id.channelId) {
+            // console.log(`🚀 ~ file: YouTube_REST.svelte ~ line 200 ~ assignId ~ video.id.channelId`, video.id.channelId)
+            thisId = video.id.channelId;
+        } else if (video.id.playlistId) {
+            // console.log(`🚀 ~ file: YouTube_REST.svelte ~ line 203 ~ assignId ~ video.id.playlistId`, video.id.playlistId)
+            thisId = video.id.playlistId;
+        } else {
+            thisId = "ERR: ID not found";
         }
     }
 </script>
@@ -224,7 +231,7 @@
         </div>
         <Button
             class="h-14 self-start mt-2 col-start-4"
-            on:click={() => getChannelById()}>Search</Button
+            on:click={() => getPlaylistsByChannelId()}>Search</Button
         >
     </div>
     <div class="grid grid-cols-4 col-start-4">
@@ -239,7 +246,7 @@
         </div>
         <Button
             class="h-14 self-start mt-2 col-start-4"
-            on:click={() => getChannelById()}>Search</Button
+            on:click={() => getPlaylistsByChannelId()}>Search</Button
         >
     </div>
 </div>
@@ -248,26 +255,27 @@
         <h4>Playlist total videos {pageInfo.totalResults}</h4>
     {/if}
     {#each videos as video}
-    <div class="hidden">
-        {video.id.videoId ? thisId = video.id.videoId : thisId = video.id.channelId}
-    </div>
+        <div class="hidden">
+            {assignId(video)}
+        </div>
 
         <div
             class="videoItem grid row-start-auto grid-cols-12 m-1"
-            on:click={getPlaylistId(thisId)}
+            on:click={() => getPlaylistId(thisId)}
         >
             <img
                 class="thumbnail col-start-1 col-span-1"
                 src={video.snippet.thumbnails.default.url}
                 width={video.snippet.thumbnails.default.width}
-                height={video.snippet.thumbnails.default.height}    
+                height={video.snippet.thumbnails.default.height}
             />
             <div class="col-start-2 col-span-10 justify-self-start">
                 {video.snippet.title}
             </div>
             <div class="col-start-12 flex-col">
                 Date: <div>{video.snippet.publishedAt}</div>
-                Id: <div>{thisId}</div>
+                Id:
+                <div>{thisId}</div>
             </div>
         </div>
     {/each}
@@ -276,6 +284,7 @@
 <style>
     .videoItem {
         margin: 0.25rem;
+        cursor: pointer;
         background: rgba(72, 35, 158, 0.1);
         border: 1px solid rgba(72, 35, 158, 0.7);
     }

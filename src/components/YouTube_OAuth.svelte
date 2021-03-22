@@ -8,7 +8,9 @@
     import { onMount } from "svelte";
     import "smelte/src/tailwind.css";
     import Button from "smelte/src/components/Button";
+    import Chip from "smelte/src/components/Chip";
     import TextField from "smelte/src/components/TextField";
+    // import colors from 'tailwindcss/colors'
 
     const API_KEY = "AIzaSyAXl6KBB0aJ1zFGJoQVzl45aXXpySJt8eQ";
     const CLIENT_ID =
@@ -29,24 +31,26 @@
     // let lookupPart = "snippet";
     let lookupPart = "contentDetails";
     let uploadsId = "";
+    let playlistId = "";
     let pagesOfResults = 0;
-    let isAuthorized = false
+    let isAuthorized = false;
 
     onMount(() => {
+        // console.log(`tailwind colors: `, colors)
         if (gapiLoaded) {
             console.log(`GAPI loaded`);
             // authenticate().then(loadClient)
             // gapi.load("client:auth2", function () {
             //     gapi.auth2.init({ client_id: CLIENT_ID });
             // });
-            handleClientLoad()
+            handleClientLoad();
         }
     });
 
     function loadGapi() {
         mounted = true;
         gapiLoaded = true;
-        handleClientLoad()
+        handleClientLoad();
         // gapi.load("client:auth2", function () {
         //     gapi.auth2.init({ client_id: CLIENT_ID });
         // });
@@ -77,7 +81,10 @@
             })
             .then(function () {
                 GoogleAuth = gapi.auth2.getAuthInstance();
-                console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 80 ~ GoogleAuth`, GoogleAuth)
+                console.log(
+                    `🚀 ~ file: YouTube_OAuth.svelte ~ line 80 ~ GoogleAuth`,
+                    GoogleAuth
+                );
 
                 // Listen for sign-in state changes.
                 GoogleAuth.isSignedIn.listen(updateSigninStatus);
@@ -90,11 +97,17 @@
 
     function handleAuthClick() {
         if (GoogleAuth.isSignedIn.get()) {
-            console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 93 ~ handleAuthClick ~ GoogleAuth`, GoogleAuth)
+            console.log(
+                `🚀 ~ file: YouTube_OAuth.svelte ~ line 93 ~ handleAuthClick ~ GoogleAuth`,
+                GoogleAuth
+            );
             // User is authorized and has clicked "Sign out" button.
             GoogleAuth.signOut();
         } else {
-            console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 97 ~ handleAuthClick ~ GoogleAuth`, GoogleAuth)
+            console.log(
+                `🚀 ~ file: YouTube_OAuth.svelte ~ line 97 ~ handleAuthClick ~ GoogleAuth`,
+                GoogleAuth
+            );
             // User is not signed in. Start Google auth flow.
             GoogleAuth.signIn();
         }
@@ -106,7 +119,10 @@
 
     function setSigninStatus() {
         var user = GoogleAuth.currentUser.get();
-        console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 107 ~ setSigninStatus ~ user`, user)
+        console.log(
+            `🚀 ~ file: YouTube_OAuth.svelte ~ line 107 ~ setSigninStatus ~ user`,
+            user
+        );
         isAuthorized = user.hasGrantedScopes(SCOPE);
         if (isAuthorized) {
             // $("#sign-in-or-out-button").html("Sign out");
@@ -127,10 +143,12 @@
     function updateSigninStatus() {
         setSigninStatus();
     }
+
     let res = {};
     let items = [];
     // Make sure the client is loaded and sign-in is complete before calling this method.
-    function executePlaylistsByChannelName() {
+    function searchByChannelName() {
+        videos = [];
         return gapi.client.youtube.channels
             .list({
                 part: ["snippet,contentDetails,statistics"],
@@ -158,58 +176,64 @@
             );
     }
 
-    function executePlaylistsByChannelId(playlist) {
-        if (playlist == "channel") {
-            return gapi.client.youtube.channels
-                .list({
-                    part: ["snippet,contentDetails"],
-                    id: channelId,
-                    maxResults: 50,
-                })
-                .then(
-                    function (response) {
-                        // Handle the results here (response.result has the parsed body).
-                        console.log("Response", response);
-                        console.log("Result: ", response.result);
-                        res = response.result;
-                        if (res.items) {
-                            parseResultData("id", res);
-                        } else {
-                            channelId = "Playlist not found";
-                        }
-                        items = res.items[0];
-                        console.log("items: ", items);
-                    },
-                    function (err) {
-                        console.error("Execute error", err);
+    function getPlaylistsByChannelId(channelId) {
+        videos = [];
+        return gapi.client.youtube.playlists
+            .list({
+                part: ["snippet"],
+                channelId: channelId,
+                maxResults: maxResults,
+            })
+            .then(
+                function (response) {
+                    // Handle the results here (response.result has the parsed body).
+                    console.log("Response", response);
+                    console.log("Result: ", response.result);
+                    res = response.result;
+                    if (res.items) {
+                        parseResultData("id", res);
+                    } else {
+                        channelId = "Playlist not found";
                     }
-                );
-        } else if (playlist == "uploads") {
-            return gapi.client.youtube.playlistItems
-                .list({
-                    part: ["snippet,contentDetails"],
-                    playlistId: uploadsId,
-                    maxResults: 50,
-                })
-                .then(
-                    function (response) {
-                        // Handle the results here (response.result has the parsed body).
-                        console.log("Response", response);
-                        console.log("Result: ", response.result);
-                        res = response.result;
-                        if (res.items) {
-                            parseResultData("id", res);
-                        } else {
-                            uploadsId = "Playlist not found";
-                        }
-                        items = res.items[0];
-                        console.log("items: ", items);
-                    },
-                    function (err) {
-                        console.error("Execute error", err);
+                    items = res.items[0];
+                    console.log("items: ", items);
+                },
+                function (err) {
+                    console.error("Execute error", err);
+                }
+            );
+    }
+
+    function getVideosByPlaylistId(id) {
+        videos = [];
+        return gapi.client.youtube.playlistItems
+            .list({
+                part: ["snippet,contentDetails"],
+                playlistId: `${id}`,
+                maxResults: 50,
+            })
+            .then(
+                function (response) {
+                    // Handle the results here (response.result has the parsed body).
+                    console.log("Response", response);
+                    console.log("Result: ", response.result);
+                    res = response.result;
+                    if (res.items) {
+                        parseResultData("id", res);
+                    } else {
+                        id = "Playlist not found";
                     }
-                );
-        }
+                    items = res.items[0];
+                    console.log("items: ", items);
+                },
+                function (err) {
+                    console.error("Execute error", err);
+                }
+            );
+    }
+
+    function getPlaylistId(id) {
+
     }
 
     function parseResultData(type, res) {
@@ -258,31 +282,43 @@
         if (e.keyCode == 13) {
             e.preventDefault();
             if (e.target.ariaLabel == "Channel Name") {
-                executePlaylistsByChannelName();
+                searchByChannelName();
             } else if (e.target.ariaLabel == "Channel ID") {
-                executePlaylistsByChannelId();
+                getPlaylistsByChannelId();
+            } else if (e.target.ariaLabel == "Uploads ID") {
+                getPlaylistsByChannelId();
+            } else if (e.target.ariaLabel == "Playlist ID") {
+                getPlaylistsByChannelId();
             }
         }
     }
 </script>
 
 <svelte:head>
-    <script src="https://apis.google.com/js/api.js" on:load={handleClientLoad}></script>
+    <script
+        src="https://apis.google.com/js/api.js"
+        on:load={handleClientLoad}></script>
 </svelte:head>
+<div>
+    <h3 class="center">YouTube OAuth Flow</h3>
+    <div class="absolute top-10 right-20">
+        {#if isAuthorized}
+            <Button
+                color="secondary"
+                class="primary"
+                on:click={() => revokeAccess()}>Revoke Access</Button
+            >
+            <p>You are signed in and authorized.</p>
+        {:else}
+            <Button color="blue" on:click={() => handleAuthClick()}
+                >Handle Auth</Button
+            >
+            <p>You are not signed in, or not authorized to use this app.</p>
+        {/if}
+    </div>
+</div>
 
-<h4>YouTube OAuth Flow</h4>
-
-<div class="grid grid-cols-5 gap-4">
-    {#if isAuthorized}
-    <Button on:click={() => revokeAccess()}
-        >Revoke Access</Button
-    >
-    {:else}
-    <Button on:click={() => handleAuthClick()}
-        >Handle Auth</Button
-    >
-    {/if}
-
+<div class="grid grid-cols-6 gap-4">
     <div class="grid grid-cols-4 col-start-2">
         <div class="col-span-3">
             <TextField
@@ -295,11 +331,11 @@
         </div>
         <Button
             class="h-14 self-start mt-2 col-start-4"
-            on:click={() => executePlaylistsByChannelName()}>Search</Button
+            on:click={() => searchByChannelName()}>Search</Button
         >
     </div>
-    <div class="grid grid-cols-4 col-start-3">
-        <div class="col-span-3">
+    <div class="grid grid-cols-6 col-start-3">
+        <div class="col-span-4">
             <TextField
                 bind:value={channelId}
                 on:blur={() => testOnBlur(channelId)}
@@ -309,9 +345,9 @@
             />
         </div>
         <Button
-            class="h-14 self-start mt-2 col-start-4"
-            on:click={() => executePlaylistsByChannelId("channel")}
-            >Search</Button
+            class="h-14 self-start mt-2 col-start-5 col-span-2"
+            on:click={() => getPlaylistsByChannelId(channelId)}
+            >Get Playlists</Button
         >
     </div>
     <div class="grid grid-cols-4 col-start-4">
@@ -326,8 +362,24 @@
         </div>
         <Button
             class="h-14 self-start mt-2 col-start-4"
-            on:click={() => executePlaylistsByChannelId("uploads")}
-            >Search</Button
+            on:click={() => getVideosByPlaylistId(uploadsId)}>Get Videos</Button
+        >
+    </div>
+
+    <div class="grid grid-cols-4 col-start-5">
+        <div class="col-span-3">
+            <TextField
+                bind:value={playlistId}
+                on:blur={() => testOnBlur(channelName)}
+                on:keypress={(e) => handle(e)}
+                label="Playlist ID"
+                append="search"
+            />
+        </div>
+        <Button
+            class="h-14 self-start mt-2 col-start-4"
+            on:click={() => getVideosByPlaylistId(playlistId)}
+            >Get Videos</Button
         >
     </div>
 </div>
@@ -336,9 +388,9 @@
         <h4>Playlist total videos {pageInfo.totalResults}</h4>
     {/if}
     {#each videos as video}
-        <div class="grid row-start-auto grid-cols-12 m-1">
+        <div class="videoItem grid row-start-auto grid-cols-12 m-1" on:click={() => { playlistId = video.id}}>
             <img
-                class="col-start-1 col-span-1"
+                class="thumbnail col-start-1 col-span-1"
                 src={video.snippet.thumbnails.default.url}
                 width={video.snippet.thumbnails.default.width}
                 height={video.snippet.thumbnails.default.height}
@@ -346,7 +398,30 @@
             <div class="col-start-2 col-span-10 justify-self-start">
                 {video.snippet.title}
             </div>
-            <div class="col-start-12 ">{video.snippet.publishedAt}</div>
+            <div class="col-start-12 flex-col">
+                Date: <div>{video.snippet.publishedAt}</div>
+                Id:
+                <div>{JSON.stringify(video.id)}</div>
+            </div>
         </div>
     {/each}
 </div>
+
+
+<style>
+    .videoItem {
+        margin: 0.25rem;
+        cursor: pointer;
+        background: rgba(72, 35, 158, 0.1);
+        border: 1px solid rgba(72, 35, 158, 0.7);
+    }
+    .videoItem:hover {
+        background: rgba(0, 0, 0, 0.25);
+    }
+    .thumbnail {
+        background: black;
+    }
+    .hidden {
+        display: none;
+    }
+</style>
