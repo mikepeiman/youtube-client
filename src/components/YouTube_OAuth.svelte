@@ -145,6 +145,8 @@
                     res = response.result;
                     if (res.items) {
                         parseResultData("name", res.items[0]);
+                    } else {
+                        uploadsId = "Channel not found";
                     }
                     items = res.items[0];
                     console.log("items: ", items);
@@ -173,7 +175,7 @@
                         if (res.items) {
                             parseResultData("id", res);
                         } else {
-                            channelId = "Channel not found";
+                            channelId = "Playlist not found";
                         }
                         items = res.items[0];
                         console.log("items: ", items);

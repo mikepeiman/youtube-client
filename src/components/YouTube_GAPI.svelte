@@ -247,9 +247,10 @@
 <h4>YouTube GAPI interface</h4>
 
 <div class="grid grid-cols-5 gap-4">
-    <Button on:click={() => authenticate().then(loadClient())}
+    <!-- USE ONLY if OAuth Flow is not included/not initializing -->
+    <!-- <Button on:click={() => authenticate().then(loadClient())}
         >authorize and load</Button
-    >
+    > -->
     <div class="grid grid-cols-4 col-start-2">
         <div class="col-span-3">
             <TextField
