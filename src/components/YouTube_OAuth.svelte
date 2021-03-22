@@ -20,11 +20,17 @@
 
     let forUsername = "";
     let channelName = "";
+    let currentDisplayContext = "";
+    // Options: "Channel Details", "Collection", "Playlist", "Video Details"
     let channelId = "";
+    let videoId = "";
+    let channelDetails = {};
+    let videoDetails = {};
     let channelDescription = "";
     let channelThumbnails = {};
     let nextPageToken = "";
     let pageInfo = {};
+    let playlists = [];
     let videos = [];
     let maxResults = 50;
     let videosListData = [];
@@ -124,20 +130,6 @@
             user
         );
         isAuthorized = user.hasGrantedScopes(SCOPE);
-        if (isAuthorized) {
-            // $("#sign-in-or-out-button").html("Sign out");
-            // $("#revoke-access-button").css("display", "inline-block");
-            // $("#auth-status").html(
-            //     "You are currently signed in and have granted " +
-            //         "access to this app."
-            // );
-        } else {
-            // $("#sign-in-or-out-button").html("Sign In/Authorize");
-            // $("#revoke-access-button").css("display", "none");
-            // $("#auth-status").html(
-            //     "You have not authorized this app or you are " + "signed out."
-            // );
-        }
     }
 
     function updateSigninStatus() {
@@ -146,7 +138,34 @@
 
     let res = {};
     let items = [];
-    // Make sure the client is loaded and sign-in is complete before calling this method.
+
+    function setDisplayContext(res) {
+        currentDisplayContext = res.kind;
+        console.log(
+            `🚀 ~ file: YouTube_OAuth.svelte ~ line 139 ~ setDisplayContext ~ currentDisplayContext`,
+            currentDisplayContext
+        );
+        if (res.kind == "youtube#channelListResponse") {
+            currentDisplayContext = "Channel Details";
+        }
+        if (res.kind == "youtube#playlistListResponse") {
+            currentDisplayContext = "Collection";
+        }
+        if (res.kind == "youtube#playlistItemListResponse") {
+            currentDisplayContext = "Playlist";
+        }
+        if (res.kind == "youtube#playlistItem") {
+            currentDisplayContext = "Video Details";
+        }
+        if (res.kind == "youtube#videoListResponse") {
+            currentDisplayContext = "Video Details";
+        }
+        console.log(
+            `🚀 ~ file: YouTube_OAuth.svelte ~ line 148 ~ setDisplayContext ~ currentDisplayContext`,
+            currentDisplayContext
+        );
+    }
+
     function searchByChannelName() {
         videos = [];
         return gapi.client.youtube.channels
@@ -162,13 +181,14 @@
                     console.log("Result: ", response.result);
                     res = response.result;
                     if (res.items) {
-                        parseResultData("name", res.items[0]);
+                        setDisplayContext(res);
+                        parseResultData(currentDisplayContext, res.items[0]);
                     } else {
                         uploadsId = "Channel not found";
                     }
                     items = res.items[0];
+                    channelDetails = items;
                     console.log("items: ", items);
-                    // setData(items)
                 },
                 function (err) {
                     console.error("Execute error", err);
@@ -177,7 +197,7 @@
     }
 
     function getPlaylistsByChannelId(channelId) {
-        videos = [];
+        playlists = [];
         return gapi.client.youtube.playlists
             .list({
                 part: ["snippet"],
@@ -189,9 +209,12 @@
                     // Handle the results here (response.result has the parsed body).
                     console.log("Response", response);
                     console.log("Result: ", response.result);
+
                     res = response.result;
+                    // set variables like what we are displaying (playlists, uploads, playlist name)
                     if (res.items) {
-                        parseResultData("id", res);
+                        setDisplayContext(res);
+                        parseResultData(currentDisplayContext, res);
                     } else {
                         channelId = "Playlist not found";
                     }
@@ -219,7 +242,8 @@
                     console.log("Result: ", response.result);
                     res = response.result;
                     if (res.items) {
-                        parseResultData("id", res);
+                        setDisplayContext(res);
+                        parseResultData(currentDisplayContext, res);
                     } else {
                         id = "Playlist not found";
                     }
@@ -232,12 +256,38 @@
             );
     }
 
-    function getPlaylistId(id) {
-
+    function getVideoFromId(id) {
+        videoDetails = {};
+        return gapi.client.youtube.videos
+            .list({
+                part: ["snippet,contentDetails,statistics"],
+                id: id,
+                maxResults: 50,
+            })
+            .then(
+                function (response) {
+                    // Handle the results here (response.result has the parsed body).
+                    console.log("Response", response);
+                    console.log("Result: ", response.result);
+                    res = response.result;
+                    if (res.items) {
+                        setDisplayContext(res);
+                        parseResultData(currentDisplayContext, res);
+                    } else {
+                        id = "Playlist not found";
+                    }
+                    items = res.items[0];
+                    videoDetails = items
+                    console.log("items: ", items);
+                },
+                function (err) {
+                    console.error("Execute error", err);
+                }
+            );
     }
 
     function parseResultData(type, res) {
-        if (type == "name") {
+        if (type == "Channel Details") {
             console.log(`Name res: `, res);
             channelId = res.id;
             nextPageToken = res.nextPageToken;
@@ -253,20 +303,22 @@
             if (res.contentDetails) {
                 uploadsId = res.contentDetails.relatedPlaylists.uploads;
             }
-        } else if (type == "id") {
+        } else if (type == "Collection" || type == "Playlist") {
             res.items.forEach((item) => {
                 videos = [...videos, item];
                 pageInfo = res.pageInfo;
                 pagesOfResults = Math.ceil(
                     res.pageInfo.totalResults / res.pageInfo.resultsPerPage
                 );
-                console.log(
-                    "🚀 ~ file: YouTube.svelte ~ line 91 ~ res.items.forEach ~ pagesOfResults",
-                    pagesOfResults
-                );
                 nextPageToken = res.nextPageToken;
+            });
+            console.log(`ID res: `, res);
+            videos = res.items;
+            playlists = res.items;
+        } else {
+            res.items.forEach((item) => {
                 console.log(
-                    "🚀 ~ file: YT3.svelte ~ line 66 ~ parseResultData ~ item",
+                    `🚀 ~ file: YouTube_OAuth.svelte ~ line 306 ~ res.items.forEach ~ item`,
                     item
                 );
             });
@@ -318,13 +370,14 @@
     </div>
 </div>
 
-<div class="grid grid-cols-6 gap-4">
+<div class="grid grid-cols-7 gap-4">
     <div class="grid grid-cols-4 col-start-2">
         <div class="col-span-3">
             <TextField
                 bind:value={channelName}
                 on:blur={() => testOnBlur(channelName)}
                 on:keypress={(e) => handle(e)}
+                id="channelName"
                 label="Channel Name"
                 append="search"
             />
@@ -340,6 +393,7 @@
                 bind:value={channelId}
                 on:blur={() => testOnBlur(channelId)}
                 on:keypress={(e) => handle(e)}
+                id="channelId"
                 label="Channel ID"
                 append="search"
             />
@@ -356,6 +410,7 @@
                 bind:value={uploadsId}
                 on:blur={() => testOnBlur(channelName)}
                 on:keypress={(e) => handle(e)}
+                id="uploadsId"
                 label="Uploads ID"
                 append="search"
             />
@@ -372,6 +427,7 @@
                 bind:value={playlistId}
                 on:blur={() => testOnBlur(channelName)}
                 on:keypress={(e) => handle(e)}
+                id="playlistId"
                 label="Playlist ID"
                 append="search"
             />
@@ -382,31 +438,134 @@
             >Get Videos</Button
         >
     </div>
+    <div class="grid grid-cols-4 col-start-6">
+        <div class="col-span-3">
+            <TextField
+                bind:value={videoId}
+                on:blur={() => testOnBlur(channelName)}
+                on:keypress={(e) => handle(e)}
+                id="videoId"
+                label="Video ID"
+                append="search"
+            />
+        </div>
+        <Button
+            class="h-14 self-start mt-2 col-start-4"
+            on:click={() => getVideoFromId(videoId)}>Video Details</Button
+        >
+    </div>
 </div>
 <div class="flex flex-wrap justify-start justify-items-start">
+    {#if currentDisplayContext == "Channel Details"}
     {#if pageInfo.totalResults}
-        <h4>Playlist total videos {pageInfo.totalResults}</h4>
-    {/if}
-    {#each videos as video}
-        <div class="videoItem grid row-start-auto grid-cols-12 m-1" on:click={() => { playlistId = video.id}}>
+    <h4>
+        {currentDisplayContext}, total videos: {pageInfo.totalResults}
+    </h4>
+{/if}
+        <div
+            class="playlistItem grid row-start-auto grid-cols-12 m-1"
+            on:click={() => {
+                playlistId = playlist.id;
+            }}
+        >
             <img
                 class="thumbnail col-start-1 col-span-1"
-                src={video.snippet.thumbnails.default.url}
-                width={video.snippet.thumbnails.default.width}
-                height={video.snippet.thumbnails.default.height}
+                src={channelDetails.snippet.thumbnails.default.url}
+                width={channelDetails.snippet.thumbnails.default.width}
+                height={channelDetails.snippet.thumbnails.default.height}
             />
-            <div class="col-start-2 col-span-10 justify-self-start">
-                {video.snippet.title}
+            <div class="col-start-2 col-span-3 justify-self-start">
+                {channelDetails.snippet.title}
             </div>
-            <div class="col-start-12 flex-col">
-                Date: <div>{video.snippet.publishedAt}</div>
+            <div class="col-start-5 flex-col">
+                Creation Date: <div>{channelDetails.snippet.publishedAt}</div>
                 Id:
-                <div>{JSON.stringify(video.id)}</div>
+                <div>{JSON.stringify(channelDetails.id)}</div>
             </div>
         </div>
-    {/each}
-</div>
+    {/if}
 
+    {#if currentDisplayContext == "Collection"}
+    {#if pageInfo.totalResults}
+    <h4>
+        {currentDisplayContext}: # of playlists: {pageInfo.totalResults}
+    </h4>
+{/if}
+        {#each playlists as playlist}
+            <div
+                class="playlistItem grid row-start-auto grid-cols-12 m-1"
+                on:click={() => {
+                    playlistId = playlist.id;
+                }}
+            >
+                <img
+                    class="thumbnail col-start-1 col-span-1"
+                    src={playlist.snippet.thumbnails.default.url}
+                    width={playlist.snippet.thumbnails.default.width}
+                    height={playlist.snippet.thumbnails.default.height}
+                />
+                <div class="col-start-2 col-span-10 justify-self-start">
+                    {playlist.snippet.title}
+                </div>
+                <div class="col-start-12 flex-col">
+                    Date: <div>{playlist.snippet.publishedAt}</div>
+                    Id:
+                    <div>{JSON.stringify(playlist.id)}</div>
+                </div>
+            </div>
+        {/each}
+    {/if}
+    {#if currentDisplayContext == "Playlist"}
+        {#each videos as video}
+            {#if video.snippet.title != "deleted" || video.snippet.title != "private"}
+                <div
+                    class="videoItem grid row-start-auto grid-cols-12 m-1"
+                    on:click={() => (videoId = video.contentDetails.videoId)}
+                >
+                    {#if video.snippet.thumbnails.default}
+                        <img
+                            class="thumbnail col-start-1 col-span-1"
+                            src={video.snippet.thumbnails.default.url}
+                            width={video.snippet.thumbnails.default.width}
+                            height={video.snippet.thumbnails.default.height}
+                        />
+                    {/if}
+                    <div class="col-start-2 col-span-5 justify-self-start">
+                        {video.snippet.title}
+                    </div>
+                    <div class="col-start-7 col-span-5 justify-self-start">
+                        {video.snippet.videoOwnerChannelTitle}
+                    </div>
+                    <div class="col-start-12 flex-col">
+                        Date: <div>{video.contentDetails.videoPublishedAt}</div>
+                        Id:
+                        <div>{video.contentDetails.videoId}</div>
+                    </div>
+                </div>
+            {:else}
+                Video deleted or private
+            {/if}
+        {/each}
+    {/if}
+    {#if currentDisplayContext == "Video Details"}
+        <div class="playlistItem grid row-start-auto grid-cols-12 m-1">
+            <img
+                class="thumbnail col-start-1 col-span-1"
+                src={videoDetails.snippet.thumbnails.default.url}
+                width={videoDetails.snippet.thumbnails.default.width}
+                height={videoDetails.snippet.thumbnails.default.height}
+            />
+            <div class="col-start-2 col-span-3 justify-self-start">
+                {videoDetails.snippet.title}
+            </div>
+            <div class="col-start-5 flex-col">
+                Creation Date: <div>{videoDetails.snippet.publishedAt}</div>
+                Id:
+                <div>{JSON.stringify(videoDetails.id)}</div>
+            </div>
+        </div>
+    {/if}
+</div>
 
 <style>
     .videoItem {
