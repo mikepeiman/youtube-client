@@ -3,8 +3,10 @@
 	import YT from './components/YT.svelte'
 	import YouTube_GAPI from './components/YouTube_GAPI.svelte'
 	import YouTube from './components/YouTube.svelte'
+	import YouTube_OAuth from './components/YouTube_OAuth.svelte'
 	import Test from './Test.svelte'
 	import "smelte/src/tailwind.css" ;
+import YouTubeOAuth from './components/YouTube_OAuth.svelte';
 </script>
 
 <svelte:head>
@@ -15,6 +17,7 @@ rel="stylesheet" />
 <main>
 	<h1>YouTube Data Saver</h1>
 	<YouTube_GAPI />
+	<YouTubeOAuth/>
 	<YouTube/>
 </main>
 

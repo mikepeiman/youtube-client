@@ -30,70 +30,105 @@
     let lookupPart = "contentDetails";
     let uploadsId = "";
     let pagesOfResults = 0;
-    let GoogleAuth;
+    let isAuthorized = false
+
     onMount(() => {
         if (gapiLoaded) {
             console.log(`GAPI loaded`);
             // authenticate().then(loadClient)
-            gapi.load("client:auth2", function () {
-                gapi.auth2.init({ client_id: CLIENT_ID });
-            });
-            // console.log(x)
+            // gapi.load("client:auth2", function () {
+            //     gapi.auth2.init({ client_id: CLIENT_ID });
+            // });
+            handleClientLoad()
         }
     });
 
     function loadGapi() {
         mounted = true;
         gapiLoaded = true;
-        if (gapi.auth2) {
-            GoogleAuth = gapi.auth2.getAuthInstance();
-            console.log(
-                `🚀 ~ file: YouTube_GAPI.svelte ~ line 49 ~ loadGapi ~ GoogleAuth`,
-                GoogleAuth
-            );
-        }
-        gapi.load("client:auth2", function () {
-            gapi.auth2.init({ client_id: CLIENT_ID });
-        });
+        handleClientLoad()
+        // gapi.load("client:auth2", function () {
+        //     gapi.auth2.init({ client_id: CLIENT_ID });
+        // });
     }
 
-    function authenticate() {
-        let auth = gapi.auth2;
-        console.log(`gapi ${gapi}`, gapi);
-        console.log(`gapi.auth2 ${auth}`);
-        return gapi.auth2
-            .getAuthInstance()
-            .signIn({
-                scope: "https://www.googleapis.com/auth/youtube.readonly",
+    var GoogleAuth;
+    var SCOPE = "https://www.googleapis.com/auth/youtube.readonly";
+    function handleClientLoad() {
+        // Load the API's client and auth2 modules.
+        // Call the initClient function after the modules load.
+        gapi.load("client:auth2", initClient);
+    }
+
+    function initClient() {
+        // In practice, your app can retrieve one or more discovery documents.
+        var discoveryUrl =
+            "https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest";
+
+        // Initialize the gapi.client object, which app uses to make API requests.
+        // Get API key and client ID from API Console.
+        // 'scope' field specifies space-delimited list of access scopes.
+        gapi.client
+            .init({
+                apiKey: API_KEY,
+                clientId: CLIENT_ID,
+                discoveryDocs: [discoveryUrl],
+                scope: SCOPE,
             })
-            .then(
-                function () {
-                    console.log("Sign-in successful");
-                },
-                function (err) {
-                    console.error("Error signing in", err);
-                }
-            );
-    }
-    function loadClient() {
-        gapi.client.setApiKey(API_KEY);
-        return gapi.client
-            .load(
-                "https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest"
-            )
-            .then(
-                function () {
-                    console.log("GAPI client loaded for API");
-                },
-                function (err) {
-                    console.error("Error loading GAPI client for API", err);
-                }
-            );
+            .then(function () {
+                GoogleAuth = gapi.auth2.getAuthInstance();
+                console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 80 ~ GoogleAuth`, GoogleAuth)
+
+                // Listen for sign-in state changes.
+                GoogleAuth.isSignedIn.listen(updateSigninStatus);
+
+                // Handle initial sign-in state. (Determine if user is already signed in.)
+                var user = GoogleAuth.currentUser.get();
+                setSigninStatus();
+            });
     }
 
+    function handleAuthClick() {
+        if (GoogleAuth.isSignedIn.get()) {
+            console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 93 ~ handleAuthClick ~ GoogleAuth`, GoogleAuth)
+            // User is authorized and has clicked "Sign out" button.
+            GoogleAuth.signOut();
+        } else {
+            console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 97 ~ handleAuthClick ~ GoogleAuth`, GoogleAuth)
+            // User is not signed in. Start Google auth flow.
+            GoogleAuth.signIn();
+        }
+    }
+
+    function revokeAccess() {
+        GoogleAuth.disconnect();
+    }
+
+    function setSigninStatus() {
+        var user = GoogleAuth.currentUser.get();
+        console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 107 ~ setSigninStatus ~ user`, user)
+        isAuthorized = user.hasGrantedScopes(SCOPE);
+        if (isAuthorized) {
+            // $("#sign-in-or-out-button").html("Sign out");
+            // $("#revoke-access-button").css("display", "inline-block");
+            // $("#auth-status").html(
+            //     "You are currently signed in and have granted " +
+            //         "access to this app."
+            // );
+        } else {
+            // $("#sign-in-or-out-button").html("Sign In/Authorize");
+            // $("#revoke-access-button").css("display", "none");
+            // $("#auth-status").html(
+            //     "You have not authorized this app or you are " + "signed out."
+            // );
+        }
+    }
+
+    function updateSigninStatus() {
+        setSigninStatus();
+    }
     let res = {};
     let items = [];
-    const listTwoLines = [];
     // Make sure the client is loaded and sign-in is complete before calling this method.
     function executePlaylistsByChannelName() {
         return gapi.client.youtube.channels
@@ -213,17 +248,6 @@
         }
     }
 
-    function setData(items) {
-        items.forEach(item, (i) => {
-            listTwoLines[i] = {
-                text: item,
-                icon: "✨",
-                subheading: "subtext",
-            };
-        });
-        console.log(`listTwoLines `, listTwoLines);
-    }
-
     function testOnBlur(val) {
         console.log(`testChannelName on blur: ${val}`);
     }
@@ -241,15 +265,22 @@
 </script>
 
 <svelte:head>
-    <!-- <script src="https://apis.google.com/js/api.js" on:load={loadGapi}></script> -->
+    <script src="https://apis.google.com/js/api.js" on:load={handleClientLoad}></script>
 </svelte:head>
 
-<h4>YouTube GAPI interface</h4>
+<h4>YouTube OAuth Flow</h4>
 
 <div class="grid grid-cols-5 gap-4">
-    <Button on:click={() => authenticate().then(loadClient())}
-        >authorize and load</Button
+    {#if isAuthorized}
+    <Button on:click={() => revokeAccess()}
+        >Revoke Access</Button
     >
+    {:else}
+    <Button on:click={() => handleAuthClick()}
+        >Handle Auth</Button
+    >
+    {/if}
+
     <div class="grid grid-cols-4 col-start-2">
         <div class="col-span-3">
             <TextField
