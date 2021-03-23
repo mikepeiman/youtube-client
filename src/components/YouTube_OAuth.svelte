@@ -10,6 +10,7 @@
     import Button from "smelte/src/components/Button";
     import Chip from "smelte/src/components/Chip";
     import TextField from "smelte/src/components/TextField";
+    import ChannelDetails from "./ChannelDetails.svelte";
     // import colors from 'tailwindcss/colors'
 
     const API_KEY = "AIzaSyAXl6KBB0aJ1zFGJoQVzl45aXXpySJt8eQ";
@@ -277,7 +278,7 @@
                         id = "Playlist not found";
                     }
                     items = res.items[0];
-                    videoDetails = items
+                    videoDetails = items;
                     console.log("items: ", items);
                 },
                 function (err) {
@@ -326,10 +327,6 @@
         }
     }
 
-    function testOnBlur(val) {
-        console.log(`testChannelName on blur: ${val}`);
-    }
-
     function handle(e) {
         if (e.keyCode == 13) {
             e.preventDefault();
@@ -357,7 +354,6 @@
         {#if isAuthorized}
             <Button
                 color="secondary"
-                class="primary"
                 on:click={() => revokeAccess()}>Revoke Access</Button
             >
             <p>You are signed in and authorized.</p>
@@ -375,7 +371,6 @@
         <div class="col-span-3">
             <TextField
                 bind:value={channelName}
-                on:blur={() => testOnBlur(channelName)}
                 on:keypress={(e) => handle(e)}
                 id="channelName"
                 label="Channel Name"
@@ -391,7 +386,6 @@
         <div class="col-span-4">
             <TextField
                 bind:value={channelId}
-                on:blur={() => testOnBlur(channelId)}
                 on:keypress={(e) => handle(e)}
                 id="channelId"
                 label="Channel ID"
@@ -408,7 +402,6 @@
         <div class="col-span-3">
             <TextField
                 bind:value={uploadsId}
-                on:blur={() => testOnBlur(channelName)}
                 on:keypress={(e) => handle(e)}
                 id="uploadsId"
                 label="Uploads ID"
@@ -425,7 +418,6 @@
         <div class="col-span-3">
             <TextField
                 bind:value={playlistId}
-                on:blur={() => testOnBlur(channelName)}
                 on:keypress={(e) => handle(e)}
                 id="playlistId"
                 label="Playlist ID"
@@ -442,7 +434,6 @@
         <div class="col-span-3">
             <TextField
                 bind:value={videoId}
-                on:blur={() => testOnBlur(channelName)}
                 on:keypress={(e) => handle(e)}
                 id="videoId"
                 label="Video ID"
@@ -457,40 +448,15 @@
 </div>
 <div class="flex flex-wrap justify-start justify-items-start">
     {#if currentDisplayContext == "Channel Details"}
-    {#if pageInfo.totalResults}
-    <h4>
-        {currentDisplayContext}, total videos: {pageInfo.totalResults}
-    </h4>
-{/if}
-        <div
-            class="playlistItem grid row-start-auto grid-cols-12 m-1"
-            on:click={() => {
-                playlistId = playlist.id;
-            }}
-        >
-            <img
-                class="thumbnail col-start-1 col-span-1"
-                src={channelDetails.snippet.thumbnails.default.url}
-                width={channelDetails.snippet.thumbnails.default.width}
-                height={channelDetails.snippet.thumbnails.default.height}
-            />
-            <div class="col-start-2 col-span-3 justify-self-start">
-                {channelDetails.snippet.title}
-            </div>
-            <div class="col-start-5 flex-col">
-                Creation Date: <div>{channelDetails.snippet.publishedAt}</div>
-                Id:
-                <div>{JSON.stringify(channelDetails.id)}</div>
-            </div>
-        </div>
+        <ChannelDetails {channelDetails} />
     {/if}
 
     {#if currentDisplayContext == "Collection"}
-    {#if pageInfo.totalResults}
-    <h4>
-        {currentDisplayContext}: # of playlists: {pageInfo.totalResults}
-    </h4>
-{/if}
+        {#if pageInfo.totalResults}
+            <h4>
+                {currentDisplayContext}: # of playlists: {pageInfo.totalResults}
+            </h4>
+        {/if}
         {#each playlists as playlist}
             <div
                 class="playlistItem grid row-start-auto grid-cols-12 m-1"
