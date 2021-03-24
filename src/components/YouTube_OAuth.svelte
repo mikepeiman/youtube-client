@@ -11,6 +11,14 @@
     import Chip from "smelte/src/components/Chip";
     import TextField from "smelte/src/components/TextField";
     import ChannelDetails from "./ChannelDetails.svelte";
+    import {
+        storeVideosList,
+        storeChannelDetails,
+        storePlaylistItems,
+        storeItemDetails,
+        storeChannelName,
+        storeCurrentDisplayContext,
+    } from "../../scripts/stores.js";
     // import colors from 'tailwindcss/colors'
 
     const API_KEY = "AIzaSyAXl6KBB0aJ1zFGJoQVzl45aXXpySJt8eQ";
@@ -20,19 +28,19 @@
         gapiLoaded = false;
 
     let forUsername = "";
-    let channelName = "";
-    let currentDisplayContext = "";
+    $: channelName = "";
+    $: currentDisplayContext = "default";
     // Options: "Channel Details", "Collection", "Playlist", "Video Details"
-    let channelId = "";
-    let videoId = "";
-    let channelDetails = {};
-    let videoDetails = {};
+    $: channelId = "";
+    $: videoId = "";
+    $: channelDetails = {};
+    $: videoDetails = {};
     let channelDescription = "";
     let channelThumbnails = {};
     let nextPageToken = "";
     let pageInfo = {};
-    let playlists = [];
-    let videos = [];
+    let playlistsList = [];
+    let videosList = [];
     let maxResults = 50;
     let videosListData = [];
     // let lookupPart = "snippet";
@@ -52,7 +60,93 @@
             // });
             handleClientLoad();
         }
+        loadDataFromLS();
     });
+
+    storeVideosList.subscribe((val) => {
+        console.log(
+            `🚀 ~ file: YouTube_OAuth.svelte ~ storeVideosList ~ onMount ~ val`,
+            val
+        );
+    });
+    storeChannelName.subscribe((val) => {
+        console.log(
+            `🚀 ~ file: YouTube_OAuth.svelte ~ storeChannelName ~ onMount ~ val`,
+            val
+        );
+    });
+    storeChannelDetails.subscribe((val) => {
+        console.log(
+            `🚀 ~ file: YouTube_OAuth.svelte ~ storeChannelDetails ~ onMount ~ val`,
+            val
+        );
+    });
+    storeCurrentDisplayContext.subscribe((val) => {
+        console.log(
+            `🚀 ~ file: YouTube_OAuth.svelte ~ storeCurrentDisplayContext ~ onMount ~ val`,
+            val
+        );
+        currentDisplayContext = val
+    });
+    storeItemDetails.subscribe((val) => {
+        console.log(
+            `🚀 ~ file: YouTube_OAuth.svelte ~ storeItemDetails ~ onMount ~ val`,
+            val
+        );
+    });
+
+    function loadDataFromLS() {
+        let ls_channelName = localStorage.getItem("channelName");
+        if (ls_channelName) {
+            console.log(
+                `🚀 ~ file: YouTube_OAuth.svelte ~ line 85 ~ loadDataFromLS ~ ls_channelName`,
+                ls_channelName
+            );
+            channelName = JSON.parse(ls_channelName);
+        }
+        let ls_channelDetails = localStorage.getItem("channelDetails");
+        if (ls_channelDetails) {
+            console.log(
+                `🚀 ~ file: YouTube_OAuth.svelte ~ line 90 ~ loadDataFromLS ~ ls_channelDetails`,
+                ls_channelDetails
+            );
+            channelDetails = JSON.parse(ls_channelDetails);
+        }
+        let ls_itemDetails = localStorage.getItem("itemDetails");
+        if (ls_itemDetails) {
+            console.log(
+                `🚀 ~ file: YouTube_OAuth.svelte ~ line 95 ~ loadDataFromLS ~ ls_itemDetails`,
+                ls_itemDetails
+            );
+            itemDetails = JSON.parse(ls_itemDetails);
+        }
+        let ls_videosList = localStorage.getItem("videosList");
+        if (ls_videosList) {
+            console.log(
+                `🚀 ~ file: YouTube_OAuth.svelte ~ line 100 ~ loadDataFromLS ~ ls_videosList`,
+                ls_videosList
+            );
+            videosList = JSON.parse(ls_videosList);
+        }
+        let ls_playlistsList = localStorage.getItem("playlistsList");
+        if (ls_playlistsList) {
+            console.log(
+                `🚀 ~ file: YouTube_OAuth.svelte ~ line 105 ~ loadDataFromLS ~ ls_playlistsList`,
+                ls_playlistsList
+            );
+            playlistsList = JSON.parse(ls_playlistsList);
+        }
+        let ls_currentDisplayContext = localStorage.getItem(
+            "currentDisplayContext"
+        );
+        if (ls_currentDisplayContext) {
+            console.log(
+                `🚀 ~ file: YouTube_OAuth.svelte ~ line 105 ~ loadDataFromLS ~ ls_currentDisplayContext`,
+                ls_currentDisplayContext
+            );
+            currentDisplayContext = JSON.parse(ls_currentDisplayContext);
+        }
+    }
 
     function loadGapi() {
         mounted = true;
@@ -141,25 +235,32 @@
     let items = [];
 
     function setDisplayContext(res) {
-        currentDisplayContext = res.kind;
+        // currentDisplayContext = res.kind;
         console.log(
-            `🚀 ~ file: YouTube_OAuth.svelte ~ line 139 ~ setDisplayContext ~ currentDisplayContext`,
+            `🔎 setDisplayContext currentDisplayContext`,
             currentDisplayContext
         );
-        if (res.kind == "youtube#channelListResponse") {
-            currentDisplayContext = "Channel Details";
+        if (res.kind == "youtube#channelListResponse" || res.kind == "youtube#channel") {
+            console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 244 ~ setDisplayContext ~ res.kind`, res.kind)
+            storeCurrentDisplayContext.set("Channel Details");
         }
         if (res.kind == "youtube#playlistListResponse") {
-            currentDisplayContext = "Collection";
+            console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 248 ~ setDisplayContext ~ res.kind`, res.kind)
+            storeCurrentDisplayContext.set("Collection");
         }
-        if (res.kind == "youtube#playlistItemListResponse") {
-            currentDisplayContext = "Playlist";
+        if (res.kind == "youtube#playlistItemListResponse" || res.kind == "youtube#playlist") {
+            console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 252 ~ setDisplayContext ~ res.kind`, res.kind)
+            storeCurrentDisplayContext.set("Playlist");
         }
         if (res.kind == "youtube#playlistItem") {
-            currentDisplayContext = "Video Details";
+            console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 256 ~ setDisplayContext ~ res.kind`, res.kind)
+            storeCurrentDisplayContext.set("Video Details");
         }
         if (res.kind == "youtube#videoListResponse") {
-            currentDisplayContext = "Video Details";
+            console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 260 ~ setDisplayContext ~ res.kind`, res.kind)
+            storeCurrentDisplayContext.set("Video Details");
+        } else {
+            console.log(`res.kind unknown: ${res.kind} full res: `, res);
         }
         console.log(
             `🚀 ~ file: YouTube_OAuth.svelte ~ line 148 ~ setDisplayContext ~ currentDisplayContext`,
@@ -168,7 +269,7 @@
     }
 
     function searchByChannelName() {
-        videos = [];
+        videosList = [];
         return gapi.client.youtube.channels
             .list({
                 part: ["snippet,contentDetails,statistics"],
@@ -190,6 +291,8 @@
                     items = res.items[0];
                     channelDetails = items;
                     console.log("items: ", items);
+                    storeChannelName.set(channelName);
+                    storeChannelDetails.set(channelDetails);
                 },
                 function (err) {
                     console.error("Execute error", err);
@@ -198,7 +301,8 @@
     }
 
     function getPlaylistsByChannelId(channelId) {
-        playlists = [];
+        console.log(`🚀 ~ file: YouTube_OAuth.svelte ~ line 299 ~ getPlaylistsByChannelId ~ channelId`, channelId)
+        playlistsList = [];
         return gapi.client.youtube.playlists
             .list({
                 part: ["snippet"],
@@ -221,6 +325,7 @@
                     }
                     items = res.items[0];
                     console.log("items: ", items);
+                    storePlaylistItems.set(items);
                 },
                 function (err) {
                     console.error("Execute error", err);
@@ -229,7 +334,7 @@
     }
 
     function getVideosByPlaylistId(id) {
-        videos = [];
+        videosList = [];
         return gapi.client.youtube.playlistItems
             .list({
                 part: ["snippet,contentDetails"],
@@ -306,7 +411,7 @@
             }
         } else if (type == "Collection" || type == "Playlist") {
             res.items.forEach((item) => {
-                videos = [...videos, item];
+                // videosList = [...videosList, item];
                 pageInfo = res.pageInfo;
                 pagesOfResults = Math.ceil(
                     res.pageInfo.totalResults / res.pageInfo.resultsPerPage
@@ -314,8 +419,9 @@
                 nextPageToken = res.nextPageToken;
             });
             console.log(`ID res: `, res);
-            videos = res.items;
-            playlists = res.items;
+            videosList = res.items;
+            storeVideosList.set(videosList);
+            playlistsList = res.items;
         } else {
             res.items.forEach((item) => {
                 console.log(
@@ -352,9 +458,8 @@
     <h3 class="center">YouTube OAuth Flow</h3>
     <div class="absolute top-10 right-20">
         {#if isAuthorized}
-            <Button
-                color="secondary"
-                on:click={() => revokeAccess()}>Revoke Access</Button
+            <Button color="secondary" on:click={() => revokeAccess()}
+                >Revoke Access</Button
             >
             <p>You are signed in and authorized.</p>
         {:else}
@@ -454,10 +559,10 @@
     {#if currentDisplayContext == "Collection"}
         {#if pageInfo.totalResults}
             <h4>
-                {currentDisplayContext}: # of playlists: {pageInfo.totalResults}
+                {currentDisplayContext}: # of playlistsList: {pageInfo.totalResults}
             </h4>
         {/if}
-        {#each playlists as playlist}
+        {#each playlistsList as playlist}
             <div
                 class="playlistItem grid row-start-auto grid-cols-12 m-1"
                 on:click={() => {
@@ -482,7 +587,7 @@
         {/each}
     {/if}
     {#if currentDisplayContext == "Playlist"}
-        {#each videos as video}
+        {#each videosList as video}
             {#if video.snippet.title != "deleted" || video.snippet.title != "private"}
                 <div
                     class="videoItem grid row-start-auto grid-cols-12 m-1"
