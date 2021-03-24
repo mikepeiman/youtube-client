@@ -1,5 +1,6 @@
 import svelte from 'rollup-plugin-svelte';
 import commonjs from '@rollup/plugin-commonjs';
+import replace from '@rollup/plugin-replace'
 import resolve from '@rollup/plugin-node-resolve';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
@@ -43,6 +44,17 @@ export default {
 				// enable run-time checks when not in production
 				dev: !production
 			}
+		}),
+		replace({
+			FOO: 'bar',
+
+			// 2 level deep object should be stringify
+			process: JSON.stringify({
+				env: {
+					API_KEY: "AIzaSyAXl6KBB0aJ1zFGJoQVzl45aXXpySJt8eQ",
+					CLIENT_ID: "765839078612-0pfbtcgjduc7di75ook1i6i0ldtcdoou.apps.googleusercontent.com"
+				}
+			}),
 		}),
 		smelte({
 			purge: production,

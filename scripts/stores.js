@@ -1,23 +1,27 @@
 import { writable } from 'svelte/store'
 
-let videoItems = writable([])
-let playlistItems = writable([])
+let videosList = writable([])
+let playlistsList = writable([])
 let channelDetails = writable({})
-let itemDetails = writable({})
+let videoDetails = writable({})
 let channelName = writable({})
 let currentDisplayContext = writable("")
+let channelId = writable("")
+let videoId = writable("")
+let uploadsId = writable("")
+let playlistId = writable("")
 
 export const storeVideosList = {
-    subscribe: videoItems.subscribe,
+    subscribe: videosList.subscribe,
     set: val => {
-        localStorage.setItem("videoItems", JSON.stringify(val))
+        localStorage.setItem("videosList", JSON.stringify(val))
     }
 }
 
-export const storePlaylistItems = {
-    subscribe: playlistItems.subscribe,
+export const storePlaylistsList = {
+    subscribe: playlistsList.subscribe,
     set: val => {
-        localStorage.setItem("playlistItems", JSON.stringify(val))
+        localStorage.setItem("playlistsList", JSON.stringify(val))
     }
 }
 
@@ -28,17 +32,10 @@ export const storeChannelDetails = {
     }
 }
 
-export const storeItemDetails = {
-    subscribe: itemDetails.subscribe,
+export const storeVideoDetails = {
+    subscribe: videoDetails.subscribe,
     set: val => {
-        localStorage.setItem("itemDetails", JSON.stringify(val))
-    }
-}
-
-export const storeChannelName = {
-    subscribe: channelName.subscribe,
-    set: val => {
-        localStorage.setItem("channelName", JSON.stringify(val))
+        localStorage.setItem("videoDetails", JSON.stringify(val))
     }
 }
 
@@ -49,3 +46,45 @@ export const storeCurrentDisplayContext = {
         currentDisplayContext.set(val)
     }
 }
+
+export const storeChannelName = {
+    subscribe: channelName.subscribe,
+    set: val => {
+        localStorage.setItem("channelName", JSON.stringify(val))
+    }
+}
+
+
+export const storeChannelId = {
+    subscribe: channelId.subscribe,
+    set: val => {
+        localStorage.setItem("channelId", JSON.stringify(val))
+        channelId.set(val)
+    }
+}
+
+export const storeUploadsId = {
+    subscribe: uploadsId.subscribe,
+    set: val => {
+        localStorage.setItem("uploadsId", JSON.stringify(val))
+        uploadsId.set(val)
+    }
+}
+
+export const storePlaylistId = {
+    subscribe: playlistId.subscribe,
+    set: val => {
+        localStorage.setItem("playlistId", JSON.stringify(val))
+        playlistId.set(val)
+    }
+}
+
+export const storeVideoId = {
+    subscribe: videoId.subscribe,
+    set: val => {
+        localStorage.setItem("videoId", JSON.stringify(val))
+        videoId.set(val)
+    }
+}
+
+
