@@ -11,6 +11,8 @@
     import Chip from "smelte/src/components/Chip";
     import TextField from "smelte/src/components/TextField";
     import ChannelDetails from "./ChannelDetails.svelte";
+    import Video from "./Video.svelte";
+
     import {
         storeVideosList,
         storeChannelDetails,
@@ -23,8 +25,10 @@
         storePlaylistId,
         storeVideoId,
     } from "../../scripts/stores.js";
-    import {API_KEY} from '../../scripts/secret_keys.js'
-    import {CLIENT_ID} from '../../scripts/secret_keys.js'
+    import { API_KEY } from "../../scripts/secret_keys.js";
+    import { CLIENT_ID } from "../../scripts/secret_keys.js";
+    import PlaylistItem from "./PlaylistItem.svelte";
+    import Playlist from "./Playlist.svelte";
     // import colors from 'tailwindcss/colors'
     // let API_KEY = process.env.API_KEY;
     // let CLIENT_ID = process.env.CLIENT_ID;
@@ -56,7 +60,7 @@
     // let lookupPart = "snippet";
     let lookupPart = "contentDetails";
     $: uploadsId = "";
-    $: playlistId = "";
+    $: playlistId = $storePlaylistId;
     let pagesOfResults = 0;
     let isAuthorized = false;
 
@@ -574,82 +578,16 @@
             </h4>
         {/if}
         {#each playlistsList as playlist}
-            <div
-                class="playlistItem grid row-start-auto grid-cols-12 m-1"
-                on:click={() => {
-                    storePlaylistId.set(playlist.id);
-                    playlistId = playlist.id;
-                }}
-            >
-                <img
-                    class="thumbnail col-start-1 col-span-1"
-                    src={playlist.snippet.thumbnails.default.url}
-                    width={playlist.snippet.thumbnails.default.width}
-                    height={playlist.snippet.thumbnails.default.height}
-                />
-                <div class="col-start-2 col-span-10 justify-self-start">
-                    {playlist.snippet.title}
-                </div>
-                <div class="col-start-12 flex-col">
-                    Date: <div>{playlist.snippet.publishedAt}</div>
-                    Id:
-                    <div>{JSON.stringify(playlist.id)}</div>
-                </div>
-            </div>
+            <Playlist {playlist} />
         {/each}
     {/if}
     {#if currentDisplayContext == "Playlist"}
-        {#each videosList as video}
-            {#if video.snippet.title != "deleted" || video.snippet.title != "private"}
-                <div
-                    class="videoItem grid row-start-auto grid-cols-12 m-1"
-                    on:click={() => {
-                        videoId = video.contentDetails.videoId;
-                        storeVideoId.set(videoId);
-                    }}
-                >
-                    {#if video.snippet.thumbnails.default}
-                        <img
-                            class="thumbnail col-start-1 col-span-1"
-                            src={video.snippet.thumbnails.default.url}
-                            width={video.snippet.thumbnails.default.width}
-                            height={video.snippet.thumbnails.default.height}
-                        />
-                    {/if}
-                    <div class="col-start-2 col-span-5 justify-self-start">
-                        {video.snippet.title}
-                    </div>
-                    <div class="col-start-7 col-span-5 justify-self-start">
-                        {video.snippet.videoOwnerChannelTitle}
-                    </div>
-                    <div class="col-start-12 flex-col">
-                        Date: <div>{video.contentDetails.videoPublishedAt}</div>
-                        Id:
-                        <div>{video.contentDetails.videoId}</div>
-                    </div>
-                </div>
-            {:else}
-                Video deleted or private
-            {/if}
+        {#each videosList as item}
+            <PlaylistItem {item} />
         {/each}
     {/if}
     {#if currentDisplayContext == "Video Details"}
-        <div class="playlistItem grid row-start-auto grid-cols-12 m-1">
-            <img
-                class="thumbnail col-start-1 col-span-1"
-                src={videoDetails.snippet.thumbnails.default.url}
-                width={videoDetails.snippet.thumbnails.default.width}
-                height={videoDetails.snippet.thumbnails.default.height}
-            />
-            <div class="col-start-2 col-span-3 justify-self-start">
-                {videoDetails.snippet.title}
-            </div>
-            <div class="col-start-5 flex-col">
-                Creation Date: <div>{videoDetails.snippet.publishedAt}</div>
-                Id:
-                <div>{JSON.stringify(videoDetails.id)}</div>
-            </div>
-        </div>
+        <Video {videoDetails} />
     {/if}
 </div>
 
