@@ -23,9 +23,11 @@
         storePlaylistId,
         storeVideoId,
     } from "../../scripts/stores.js";
+    import {API_KEY} from '../../scripts/secret_keys.js'
+    import {CLIENT_ID} from '../../scripts/secret_keys.js'
     // import colors from 'tailwindcss/colors'
-    let API_KEY = process.env.API_KEY;
-    let CLIENT_ID = process.env.CLIENT_ID;
+    // let API_KEY = process.env.API_KEY;
+    // let CLIENT_ID = process.env.CLIENT_ID;
     // export let API_KEY, CLIENT_ID
     console.log(
         `🚀 ~ file: YouTube_OAuth.svelte ~ line 25 ~ CLIENT_ID ${CLIENT_ID} ~ API_KEY`,

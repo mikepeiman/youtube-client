@@ -3,3 +3,4 @@
 
 .DS_Store
 .env
+scripts/secret_keys.js
