@@ -1,10 +1,12 @@
 <script>
     export let channelName, channelId, uploadsId, playlistId, videoId;
-    let playlists, playlistsList, maxResults;
+    let playlists, playlistsList, maxResults = 50;
     let pageInfo = {};
     let pagesOfResults = 0;
     let nextPageToken = "";
     let videosList = []
+    let items, res
+    let channelDescription, channelDetails, channelThumbnails, videoDetails
     import Button from "smelte/src/components/Button";
     import Chip from "smelte/src/components/Chip";
     import TextField from "smelte/src/components/TextField";
@@ -135,10 +137,10 @@
                     // Handle the results here (response.result has the parsed body).
                     console.log("Response", response);
                     console.log("Result: ", response.result);
-                    res = response.result;
+                    let res = response.result;
                     if (res.items) {
                         setDisplayContext(res);
-                        parseResultData(currentDisplayContext, res.items[0]);
+                        parseResultData($storeCurrentDisplayContext, res.items[0]);
                     } else {
                         uploadsId = "Channel not found";
                     }
@@ -156,6 +158,7 @@
     }
 
     function getVideoFromId(id) {
+        console.log(`🚀 ~ file: YouTubeItemsForm.svelte ~ line 161 ~ getVideoFromId ~ id`, id)
         videoDetails = {};
         return gapi.client.youtube.videos
             .list({
@@ -171,7 +174,7 @@
                     res = response.result;
                     if (res.items) {
                         setDisplayContext(res);
-                        parseResultData(currentDisplayContext, res);
+                        parseResultData(storeCurrentDisplayContext, res);
                     } else {
                         id = "Playlist not found";
                     }
@@ -187,6 +190,8 @@
     }
 
     function parseResultData(type, res) {
+        console.log(`🚀 ~ file: YouTubeItemsForm.svelte ~ line 190 ~ parseResultData ~ res`, res)
+        // let res
         if (type == "Channel Details") {
             console.log(`Name res: `, res);
             channelId = res.id;
