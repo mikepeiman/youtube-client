@@ -1,14 +1,15 @@
 <script>
     export let playlist;
 
-    import { storePlaylistId } from "../../scripts/stores.js";
+    import { storePlaylistId, storePlaylistName } from "../../scripts/stores.js";
 </script>
 
 <div
     class="playlistItem grid row-start-auto grid-cols-12 m-1"
     on:click={() => {
         storePlaylistId.set(playlist.id);
-        console.log(`🚀 ~ file: Playlist.svelte ~ line 11 ~ playlist.id`, playlist.id)
+        storePlaylistName.set(playlist.snippet.title)
+        console.log(`🚀 ~ file: Playlist.svelte ~ line 11 ~ playlist.id ${ playlist.id} name ${playlist.snippet.title}`)
     }}
 >
     <img

@@ -1,12 +1,14 @@
 <script>
     export let channelName, channelId, uploadsId, playlistId, videoId;
-    let playlists, playlistsList, maxResults = 50;
+    let playlists,
+        playlistsList,
+        maxResults = 50;
     let pageInfo = {};
     let pagesOfResults = 0;
     let nextPageToken = "";
-    let videosList = []
-    let items, res
-    let channelDescription, channelDetails, channelThumbnails, videoDetails
+    let videosList = [];
+    let items, res;
+    let channelDescription, channelDetails, channelThumbnails, videoDetails;
     import Button from "smelte/src/components/Button";
     import Chip from "smelte/src/components/Chip";
     import TextField from "smelte/src/components/TextField";
@@ -18,21 +20,21 @@
         storeChannelId,
         storeUploadsId,
         storeVideoDetails,
-        storeVideosList
-
+        storeVideosList,
+        storePlaylistName,
     } from "../../scripts/stores.js";
 
     function handle(e) {
         if (e.keyCode == 13) {
             e.preventDefault();
             if (e.target.ariaLabel == "Channel Name") {
-                searchByChannelName();
+                searchByChannelName(channelName);
             } else if (e.target.ariaLabel == "Channel ID") {
-                getPlaylistsByChannelId();
+                getPlaylistsByChannelId(channelId);
             } else if (e.target.ariaLabel == "Uploads ID") {
-                getPlaylistsByChannelId();
+                getVideosByPlaylistId(uploadsId);
             } else if (e.target.ariaLabel == "Playlist ID") {
-                getPlaylistsByChannelId();
+                getVideosByPlaylistId(playlistId);
             }
         }
     }
@@ -96,7 +98,7 @@
 
     function getVideosByPlaylistId(id) {
         videosList = [];
-        let items, res
+        let items, res;
         return gapi.client.youtube.playlistItems
             .list({
                 part: ["snippet,contentDetails"],
@@ -106,8 +108,11 @@
             .then(
                 function (response) {
                     // Handle the results here (response.result has the parsed body).
-                    console.log("Response", response);
-                    console.log("Result: ", response.result);
+                    console.log("getVideosByPlaylistId Response", response);
+                    console.log(
+                        "⛏⛏⛏🔥🔥🔥 getVideosByPlaylistId Result: ",
+                        response.result
+                    );
                     res = response.result;
                     if (res.items) {
                         setDisplayContext(res);
@@ -115,7 +120,8 @@
                     } else {
                         id = "Playlist not found";
                     }
-                    items = res.items[0];
+                    items = res.items;
+                    storeVideosList.set(items);
                     console.log("items: ", items);
                 },
                 function (err) {
@@ -140,7 +146,10 @@
                     let res = response.result;
                     if (res.items) {
                         setDisplayContext(res);
-                        parseResultData($storeCurrentDisplayContext, res.items[0]);
+                        parseResultData(
+                            $storeCurrentDisplayContext,
+                            res.items[0]
+                        );
                     } else {
                         uploadsId = "Channel not found";
                     }
@@ -158,7 +167,10 @@
     }
 
     function getVideoFromId(id) {
-        console.log(`🚀 ~ file: YouTubeItemsForm.svelte ~ line 161 ~ getVideoFromId ~ id`, id)
+        console.log(
+            `🚀✨✨🔎 ~ file: YouTubeItemsForm.svelte ~ line 161 ~ getVideoFromId ~ id`,
+            id
+        );
         videoDetails = {};
         return gapi.client.youtube.videos
             .list({
@@ -190,7 +202,10 @@
     }
 
     function parseResultData(type, res) {
-        console.log(`🚀 ~ file: YouTubeItemsForm.svelte ~ line 190 ~ parseResultData ~ res`, res)
+        console.log(
+            `🚀 ~ file: YouTubeItemsForm.svelte ~ line 190 ~ parseResultData ~ res`,
+            res
+        );
         // let res
         if (type == "Channel Details") {
             console.log(`Name res: `, res);
@@ -224,7 +239,7 @@
                 storePlaylistsList.set(playlistsList);
             } else {
                 videosList = res.items;
-                storeVideosList.set(videosList);
+                storeVideosList.set(res.items);
             }
         } else {
             res.items.forEach((item) => {
@@ -285,7 +300,6 @@
             on:click={() => getVideosByPlaylistId(uploadsId)}>Get Videos</Button
         >
     </div>
-
     <div class="grid grid-cols-4 col-start-5">
         <div class="col-span-3">
             <TextField
@@ -295,6 +309,7 @@
                 label="Playlist ID"
                 append="search"
             />
+            Playlist: {$storePlaylistName}
         </div>
         <Button
             class="h-14 self-start mt-2 col-start-4"

@@ -10,11 +10,13 @@ let channelId = writable("")
 let videoId = writable("")
 let uploadsId = writable("")
 let playlistId = writable("")
+let playlistName = writable("")
 
 export const storeVideosList = {
     subscribe: videosList.subscribe,
     set: val => {
         localStorage.setItem("videosList", JSON.stringify(val))
+        videosList.set(val)
     }
 }
 
@@ -22,6 +24,7 @@ export const storePlaylistsList = {
     subscribe: playlistsList.subscribe,
     set: val => {
         localStorage.setItem("playlistsList", JSON.stringify(val))
+        playlistsList.set(val)
     }
 }
 
@@ -29,6 +32,7 @@ export const storeChannelDetails = {
     subscribe: channelDetails.subscribe,
     set: val => {
         localStorage.setItem("channelDetails", JSON.stringify(val))
+        channelDetails.set(val)
     }
 }
 
@@ -36,6 +40,7 @@ export const storeVideoDetails = {
     subscribe: videoDetails.subscribe,
     set: val => {
         localStorage.setItem("videoDetails", JSON.stringify(val))
+        videoDetails.set(val)
     }
 }
 
@@ -51,6 +56,7 @@ export const storeChannelName = {
     subscribe: channelName.subscribe,
     set: val => {
         localStorage.setItem("channelName", JSON.stringify(val))
+        channelName.set(val)
     }
 }
 
@@ -76,6 +82,14 @@ export const storePlaylistId = {
     set: val => {
         localStorage.setItem("playlistId", JSON.stringify(val))
         playlistId.set(val)
+    }
+}
+
+export const storePlaylistName = {
+    subscribe: playlistName.subscribe,
+    set: val => {
+        localStorage.setItem("playlistName", JSON.stringify(val))
+        playlistName.set(val)
     }
 }
 

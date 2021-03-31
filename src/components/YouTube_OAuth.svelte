@@ -47,15 +47,16 @@
     $: currentDisplayContext = "default";
     // Options: "Channel Details", "Collection", "Playlist", "Video Details"
     let channelId = "";
-    let videoId = "";
+    $: videoId = $storeVideoId;
     $: channelDetails = {};
-    $: videoDetails = {};
+    $: videoDetails = $storeVideoDetails;
     let channelDescription = "";
     let channelThumbnails = {};
     $: nextPageToken = "";
     let pageInfo = {};
-    $: playlistsList = lsget("playlistsList");
-    $: videosList = [];
+    // $: playlistsList = lsget("playlistsList")
+    let playlistsList
+    $: videosList = []
     let maxResults = 50;
     let videosListData = [];
     // let lookupPart = "snippet";
@@ -78,11 +79,12 @@
         loadDataFromLS();
     });
 
-    storeVideosList.subscribe((val) => {
+    let unsubscribe = storeVideosList.subscribe((val) => {
         console.log(
             `🚀 ~ file: YouTube_OAuth.svelte ~ storeVideosList ~ onMount ~ val`,
             val
         );
+        videosList = val
     });
     storeChannelName.subscribe((val) => {
         console.log(
@@ -109,6 +111,26 @@
             val
         );
     });
+    storePlaylistsList.subscribe((val) => {
+        console.log(
+            `🚀 ~ file: YouTube_OAuth.svelte ~ storePlaylistsList ~ onMount ~ val`,
+            val
+        );
+        playlistsList = val
+    });
+    storeVideosList.subscribe((val) => {
+        console.log(
+            `🚀📽📽📽 ~ file: YouTube_OAuth.svelte ~ storeVideosList ~ onMount ~ val`,
+            val
+        );
+        videosList = val
+    });
+    storePlaylistId.subscribe(val => {
+        console.log(
+            `🚀 ~ file: YouTube_OAuth.svelte ~ storePlaylistId ~ onMount ~ val`,
+            val
+        );
+    })
 
     function lsget(item) {
         let ls = localStorage.getItem(item);
@@ -125,7 +147,7 @@
         channelDetails = lsget("channelDetails");
         videoDetails = lsget("videoDetails");
         videosList = lsget("videosList");
-        // playlistsList = lsget("playlistsList");
+        playlistsList = lsget("playlistsList");
         currentDisplayContext = lsget("currentDisplayContext");
         channelId = lsget("channelId");
         uploadsId = lsget("uploadsId");
@@ -218,7 +240,6 @@
 
     let res = {};
     let items = [];
-
 </script>
 
 <svelte:head>
@@ -243,13 +264,7 @@
     </div>
 </div>
 
-<YouTubeItemsForm
-    {channelName}
-    {channelId}
-    {uploadsId}
-    {playlistId}
-    {videoId}
-/>
+<YouTubeItemsForm {channelName} {channelId} {uploadsId} {playlistId} {videoId} />
 
 <div class="flex flex-wrap justify-start justify-items-start">
     {#if currentDisplayContext == "Channel Details"}
