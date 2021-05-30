@@ -4,19 +4,28 @@ let videosList = writable([])
 let playlistsList = writable([])
 let channelDetails = writable({})
 let videoDetails = writable({})
-let channelName = writable({})
+let channelName = writable("")
 let currentDisplayContext = writable("")
 let channelId = writable("")
 let videoId = writable("")
 let uploadsId = writable("")
 let playlistId = writable("")
 let playlistName = writable("")
+let totalItems = writable("")
 
 export const storeVideosList = {
     subscribe: videosList.subscribe,
     set: val => {
         localStorage.setItem("videosList", JSON.stringify(val))
         videosList.set(val)
+    }
+}
+
+export const storeTotalItems = {
+    subscribe: totalItems.subscribe,
+    set: val => {
+        localStorage.setItem("totalItems", JSON.stringify(val))
+        totalItems.set(val)
     }
 }
 

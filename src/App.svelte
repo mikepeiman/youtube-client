@@ -1,10 +1,5 @@
 <script>
 	export let name;
-	import YT from "./components/YT.svelte";
-	import YouTube_GAPI from "./components/YouTube_GAPI.svelte";
-	import YouTube_REST from "./components/YouTube_REST.svelte";
-	import YouTube_OAuth from "./components/YouTube_OAuth.svelte";
-	import Test from "./Test.svelte";
 	import "smelte/src/tailwind.css";
 	import YouTubeOAuth from "./components/YouTube_OAuth.svelte";
 

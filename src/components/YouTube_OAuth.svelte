@@ -24,6 +24,7 @@
         storeUploadsId,
         storePlaylistId,
         storeVideoId,
+storeTotalItems,
     } from "../../scripts/stores.js";
     import { API_KEY } from "../../scripts/secret_keys.js";
     import { CLIENT_ID } from "../../scripts/secret_keys.js";
@@ -272,11 +273,12 @@
     {/if}
 
     {#if currentDisplayContext == "Collection"}
-        {#if pageInfo.totalResults}
+        {#if $storeTotalItems > 0}
             <h4>
-                {currentDisplayContext}: # of playlistsList: {pageInfo.totalResults}
+                Showing {playlistsList.length} of {$storeTotalItems} playlists
             </h4>
         {/if}
+        <hr>
         {#each playlistsList as playlist}
             <Playlist {playlist} />
         {/each}

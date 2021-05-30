@@ -22,6 +22,7 @@
         storeVideoDetails,
         storeVideosList,
         storePlaylistName,
+        storeTotalItems
     } from "../../scripts/stores.js";
 
     function handle(e) {
@@ -45,6 +46,7 @@
                 part: ["snippet"],
                 channelId: channelId,
                 maxResults: maxResults,
+
             })
             .then(
                 function (response) {
@@ -62,6 +64,7 @@
                     }
                     // items = res.items[0];
                     // console.log("items: ", items);
+                    storeTotalItems.set(res.pageInfo.totalResults)
                     storePlaylistsList.set(res.items);
                 },
                 function (err) {
